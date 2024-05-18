@@ -12,7 +12,7 @@ const clientExists = await Client.findOne({ email:data.email });
 
 if (clientExists) {
     console.log('Client exists!');
-    res.status(400).send('Client exist');
+    res.status(500).json({message:'Client email exist'});
 } else {
     console.log('Client does not exist!');
      try {
@@ -32,7 +32,7 @@ if (clientExists) {
 // Get all clients
 const getClients = async (req, res) => {
     try {
-        const clients = await Client.find({});
+        const clients = await Client.find({deleted:false});
         res.send(clients);
     } catch (error) {
         res.status(500).send();
@@ -79,11 +79,17 @@ const updateClientById = async (req, res,fileName) => {
 // Delete client by ID
 const deleteClientById = async (req, res) => {
     try {
-        const client = await Client.findByIdAndDelete(req.params.id);
+        const client = await Client.findById(req.params.id);
+        client.deleted = true ; 
+        id = req.params.id ;
         if (!client) {
             return res.status(404).send();
         }
-        res.send(client);
+        else{
+let deletedclient = await Client.findByIdAndUpdate({_id:id},client); 
+             res.send(deletedclient);
+        }
+       
     } catch (error) {
         res.status(500).send();
     }

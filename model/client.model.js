@@ -15,9 +15,16 @@ const Client = mongoose.model('Client',{
     image:{
         type:String
     },
+    distance:{
+        type:String 
+    },
     date:{
         type:String
-    }
+    },
+    deleted:{
+        type:Boolean , default : false
+    } 
+
 
 })
 

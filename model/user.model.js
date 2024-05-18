@@ -16,15 +16,17 @@ const User = mongoose.model('User',{
     image:{
         type:String
     },
-    tags:{
-        type:Array,
-        default:[]
+    tag:{
+        type:String
     },
     date:{
         type:Date
     },
     role:{
         type:String
+    },
+    deleted:{
+        type:Boolean , default : false
     }
 })
 

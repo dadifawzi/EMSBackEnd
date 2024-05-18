@@ -1,7 +1,8 @@
 const User = require('../model/user.model'); 
-const mongoose = require('mongoose');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
+
+
 
 
 //create admin account
@@ -13,6 +14,7 @@ let admin ={
     password:process.env.password,
     tel:process.env.tel,
     image:process.env.image,
+    tag:process.env.tag,
     role:process.env.role,
     date:new Date()
 }
@@ -44,18 +46,18 @@ console.log('admin does not exist!');
 //SignIn 
 const signIn = async (req, res) => {
     try {
-
         const { email, password } = req.body;
-
+console.log('email:'+email);
+console.log('password: '+password);
         const user = await User.findOne({ email: email });
         if(!user){
-           return res.status(401).send('email or password invalid');
+           return res.status(401).send('oops email or password invalid');
         }   
 
         const valid = bcrypt.compareSync( password, user.password );
 
         if(!valid){
-            return res.status(401).send('email or password invalid');
+            return res.status(401).send('oops 2 email or password invalid');
         }
 
         let payload = {
@@ -65,7 +67,7 @@ const signIn = async (req, res) => {
             tel: user.tel,
             image: user.image,
             role: user.role,
-            tags: user.tags,
+            tag: user.tag,
             date: user.date
         }
 
@@ -81,7 +83,7 @@ const signIn = async (req, res) => {
 // Create a new user
 const createUser = async (req, res ) => {
 let data = req.body ; 
-let userexist = true ; 
+
 const imageuploaded = req.file ? req.file.filename : null;
 const userExists = await User.findOne({ email:data.email });
 
@@ -92,12 +94,11 @@ if (userExists) {
     console.log('User does not exist!');
      try {
     const hashedpassword = await bcrypt.hash(data.password,10); 
-    const tags =JSON.parse(data.tags) ; 
+   // const tags =JSON.parse(data.tags) ; 
         const user = new User({...data , 
              password:hashedpassword ,
-             role:'user',
              image:imageuploaded,
-             tags:tags,
+             //tags:tags,
              date : new Date()
             });
         await user.save();
@@ -112,7 +113,7 @@ if (userExists) {
 // Get all users
 const getUsers = async (req, res) => {
     try {
-        const users = await User.find({});
+        const users = await User.find({deleted:false});
         res.send(users);
     } catch (error) {
         res.status(500).send();
@@ -124,7 +125,7 @@ const getUserById = async (req, res) => {
     const _id = req.params.id;
 
     try {
-        const user = await User.findById(_id);
+        const user = await User.findById({ _id: req.params.id }, { password: 0 });
         if (!user) {
             return res.status(404).send();
         }
@@ -141,7 +142,7 @@ const updateUserById = async (req, res , fileName) => {
         
         let id = req.params.id;
         let data = req.body;
-        data.tags = JSON.parse(data.tags);
+      //  data.tags = JSON.parse(data.tags);
 
         if(fileName.length > 0){
             data.image = fileName;
@@ -165,11 +166,18 @@ const updateUserById = async (req, res , fileName) => {
 // Delete user by ID
 const deleteUserById = async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.params.id);
+        const user = await User.findById(req.params.id);
+        let id = req.params.id ; 
         if (!user) {
             return res.status(404).send();
+            console.log("no user found");
+        }else{
+            user.deleted = true ; 
+            let deleteduser = await User.findByIdAndUpdate({_id: id},user);
+            console.log("user deleted ");
+            res.send(deleteduser);
         }
-        res.send(user);
+      
     } catch (error) {
         res.status(500).send();
     }

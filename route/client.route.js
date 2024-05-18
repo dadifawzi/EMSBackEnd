@@ -27,8 +27,8 @@ const upload = multer({
 
 
 // Routes for client management
-router.post('/add',upload.single('image') ,(req,res)=>{ clientController.createClient(req,res,fileName) ; fileName='' ; });
-router.get('/all',clientController.getClients );
+router.post('/',upload.single('image') ,(req,res)=>{ clientController.createClient(req,res,fileName) ; fileName='' ; });
+router.get('/',clientController.getClients );
 router.get('/:id',clientController.getClientById );
 router.put('/:id',upload.single('image') , (req,res)=>{ clientController.updateClientById(req,res,fileName)  ; fileName='' ; });
 router.delete('/:id',clientController.deleteClientById );
